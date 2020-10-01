@@ -13,12 +13,13 @@ int i,j,k;
 
 
 class Subject{
-public:
-    string course_title;
+private:
     string course_teacher;
     float course_code;
     float credit;
     float grade;
+public:
+    string course_title;
     Subject(){
         course_title="none";
         course_teacher="none";
@@ -39,13 +40,18 @@ public:
         cout<<"\ncourse credit is : "<<credit;
     }
 
+    friend class Semister;
+    friend class Merit;
+    friend class Students;
+
 };
 
 
 //abstract class
 class Semister{
-public:
+protected:
     float semister_number;
+public:
     virtual void set_semister(float semister_number) = 0;
 };
 
@@ -55,6 +61,8 @@ public:
     void set_semister(float semister_number){
         this->semister_number = semister_number;
     }
+    friend class Students;
+    friend class Merit;
 };
 
 
@@ -92,6 +100,7 @@ public:
         }
         CGPA = grand_total/passed_credit;
     }
+    friend class Merit;
 };
 
 
@@ -111,7 +120,6 @@ public:
     }
     float get_merit(string r){
         merit = cgpa.size() - distance(cgpa.begin(),cgpa.find(list_of_cgpa.at(r)));
-        //merit = list_of_cgpa.at(r);
         return merit;
     }
 
@@ -174,7 +182,6 @@ int main(){
 
 
 //  Find merit
-
     Merit merit;
     merit.Activate_merit_list(student);
     while(true){
@@ -186,18 +193,3 @@ int main(){
 
     return 0;
 }
-
-/*
-
-math 2101 rafiqul_islam 3
-physics 2102 tariq_rahman 3
-5
-asif 10 3 3
-nirob 11 3 4
-kaif 12 4 4
-jabir 13 4 3
-siyam 14 3 3
-
-*/
-
-

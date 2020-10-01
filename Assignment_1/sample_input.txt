@@ -1,0 +1,8 @@
+math 2101 rafiqul_islam 3
+physics 2102 tariq_rahman 3
+5
+asif 10 3 3
+nirob 11 3 4
+kaif 12 4 4
+jabir 13 4 3
+siyam 14 3 3
