@@ -10,14 +10,17 @@ Structured_programming 2101 mijanul_haq 3
 Design_pattern 2103 rejaul_karim 3
 
 
-5
-asif 10 3 3 4 4 3
+6
+naim 10 3 3 4 4 3
 nirob 11 3 4 4 4 3 
 kaif 12 4 4 4 4 4 
 jabir 13 4 3 3 3 3
 siyam 14 3 3 3 4 4
+sabil 15 3 4 4 4 3
+-merit
 10
 12
 14
+15
 13
 11

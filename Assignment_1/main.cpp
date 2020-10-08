@@ -4,12 +4,16 @@
 #include <map>
 #include <set>
 #include <iterator>
-#include <stdlib.h>
+#include <cstdlib>
+#include <conio.h>
+#include <sstream>
 
 using namespace std;
 int i,j,k;
 
 
+
+//Object Oriented design.................
 
 class Subject{
 private:
@@ -44,11 +48,11 @@ public:
     string get_title(){
         return course_title;
     }
-    void show_subject_info(){
-        cout<<"\n\ncourse title is : "<<course_title;
-        cout<<"\ncourse code is : "<<course_code;
-        cout<<"\ncourse teacher is : "<<course_teacher;
-        cout<<"\ncourse credit is : "<<credit;
+    void get_subject_info(){
+        cout<<"\tCourse Title: "<<course_title;
+        cout<<"\n\tCourse Code: "<<course_code;
+        cout<<"\n\tCourse Teacher: "<<course_teacher;
+        cout<<"\n\tCourse Credit: "<<credit;
     }
 
     friend class Semister;
@@ -58,7 +62,7 @@ public:
 
 class Semister{
 private:
-    vector<Subject> subjects;
+    vector<Subject> subjects;   //semister has-a subject (composition)
     void set_grade(int number_of_subjects,float grade){
         subjects[number_of_subjects].set_grade(grade);
     }
@@ -81,6 +85,14 @@ public:
     string get_course_title(int subject_number){
         return subjects[subject_number].get_title();
     }
+    void get_semister_info(){
+        cout<<"Total Subjects: "<<subjects.size()<<"\n";
+        cout<<"Subjects: \n";
+        for(int s=0;s<subjects.size();s++){
+            subjects[s].get_subject_info();
+            cout<<"\n\n";
+        }
+    }
     friend class Students;
 };
 
@@ -88,23 +100,17 @@ public:
 
 class Students{
 private:
+    vector<Semister> semister;  //students has-a semister (composition)
     string name;
-    float merit_position;
     string roll;
     float CGPA;
-    vector<Semister> semister;
-    string get_roll(){
-        return roll;
+    string get_name(){
+        return name;
     }
     float get_cgpa(){
         return CGPA;
     }
 public:
-    Students(){
-        merit_position=0;
-        roll="none";
-        name="none";
-    }
     void set_student_info(Semister& s,string name,string roll,float grade[]){
         this->semister.push_back(s);
         this->name = name;
@@ -112,17 +118,22 @@ public:
         for(i=0;i<semister.back().number_of_subjects();i++){
             semister.back().set_grade(i,grade[i]);
         }
-        float passed_credit=0;
-        float grand_total=0;
+        float total_sgpa=0;
         for(k=0;k<semister.size();k++){
+            float passed_credit=0;
+            float grand_total=0;
             for(i=0;i<semister[k].number_of_subjects();i++){
                 if(semister[k].get_grade(i)!=0){
                     grand_total += (semister[k].get_grade(i)*semister[k].get_credit(i));
                     passed_credit += semister[k].get_credit(i);
                 }
             }
+            total_sgpa += grand_total/passed_credit;
         }
-        CGPA = grand_total/passed_credit;
+        CGPA = total_sgpa/semister.size();
+    }
+    string get_roll(){
+        return roll;
     }
     void get_SGPA(){
         for(k=0;k<semister.size();k++){
@@ -134,29 +145,38 @@ public:
                     passed_credit += semister[k].get_credit(i);
                 }
             }
-            cout<<"SGPA of "<<k+1<<"th semister: "<<grand_total/passed_credit<<"\n";
+            cout<<"\tSGPA of "<<k+1<<"th semister: "<<grand_total/passed_credit<<"\n";
         }
     }
-    friend class Merit;
+    friend class Informations_library;
 };
 
 
 
-class Merit{
+class Informations_library{
 private:
-    map <string,float> list_of_cgpa;
+    map <string,int> id_from_roll;
     set <float> cgpa;
-    float students_cgpa;
+    vector <Students> students;
 public:
-    void Activate_merit_list(vector<Students> students){
+    void Activate_Informations_library(vector<Students>& students){
+        //must be reset when new semister or student will be added
+        this->students = students;
         for(i=0;i<students.size();i++){
-            list_of_cgpa.insert(pair<string,float>(students[i].get_roll(),students[i].get_cgpa()));
+            id_from_roll.insert(pair<string,int>(students[i].get_roll(),i));
             cgpa.insert(students[i].get_cgpa());
         }
     }
     float get_merit(string roll){
-        int merit = cgpa.size() - distance(cgpa.begin(),cgpa.find(list_of_cgpa.at(roll)));
+        int merit = cgpa.size() - distance(cgpa.begin(),cgpa.find(students[id_from_roll[roll]].get_cgpa()));
         return merit;
+    }
+    void get_student_info(string roll){
+        cout<<"\tName: "<<students[id_from_roll[roll]].get_name()<<"\n";
+        cout<<"\tRoll: "<<roll<<"\n";
+        students[id_from_roll[roll]].get_SGPA();
+        cout<<"\tCGPA: "<<students[id_from_roll[roll]].get_cgpa()<<"\n";
+        cout<<"\tMerit Position: "<<get_merit(roll)<<"\n";
     }
 };
 
@@ -165,6 +185,7 @@ public:
 
 
 
+//Utility Functions.............................
 
 //initialize subjects to semister
 void add_semister(vector<Semister>& smstr){
@@ -210,13 +231,16 @@ int main(){
     float grd[20];
     string name;
     string roll;
-    int n_student;
+    string number_of_semister;
     int number_of_students;
-
-
-
     int number_of_semisters;
     int number_of_subjects;
+
+
+
+
+
+// Setting all Informations..................
 
     //initial semister
     cout<<"Insert the number of semister: ";
@@ -235,7 +259,6 @@ int main(){
         cout<<"\n\n";
     }
     system("cls");
-
 
     //initial semister
     cout<<"Insert the number of students: ";
@@ -263,17 +286,94 @@ int main(){
     }
     system("cls");
 
+    //Initializing Information_library
+    Informations_library info_lib;
+    info_lib.Activate_Informations_library(stdnt);
 
 
-//  Find merit
-    Merit merit;
-    merit.Activate_merit_list(stdnt);
-    while(true){
-        cout<<"Insert the roll of student :";
-        cin>>roll;
-        cout<<"Merit: "<<merit.get_merit(roll);
-        cout<<"\n\n";
+
+
+
+
+// Functionalities to use Informations...............
+
+    //Functionalities
+    string command="-start";
+    cout<<"These are some available methods... type method name to use\n\n";
+    cout<<"\t\t\t -merit \t -students_information \t -all_students_information \n\t\t -semister_information \t -all_semisters_information \t -add_student \t -add_semister\n\t\t\t\t\t\t\t -exit \n\n";
+    cout<<"\n*** -add_student and -add_semister methods are in under construction...\n\n";
+    while(command!="-exit"){
+        system("cls");
+        cout<<"These are some available methods... type method name to use\n\n";
+        cout<<"\t\t\t -merit \t -students_information \t -all_students_information \n\t\t -semister_information \t -all_semisters_information \t -add_student \t -add_semister\n\t\t\t\t\t\t\t -exit \n\n";
+        cout<<"\n*** -add_student and -add_semister methods are in under construction...\n\n";
+        cout<<"\nMethod name: ";
+        cin>>command;
+        if(command=="-merit"){
+            system("cls");
+            cout<<"type -break to exit from merit method...\n";
+            while(true){
+                cout<<"Insert the roll of student :";
+                cin>>roll;
+                if(roll=="-break"){
+                    break;
+                }
+                cout<<"Merit: "<<info_lib.get_merit(roll);
+                cout<<"\n\n";
+            }
+        }else if(command=="-students_information"){
+            system("cls");
+            cout<<"type -break to exit from this method...\n";
+            while(true){
+                cout<<"Insert the roll of student :";
+                cin>>roll;
+                if(roll=="-break"){
+                    break;
+                }
+                cout<<"Informations: \n";
+                info_lib.get_student_info(roll);
+                cout<<"\n\n";
+            }
+        }else if(command=="-all_students_information"){
+            system("cls");
+            cout<<"All students information: \n\n";
+            for(int s=0;s<stdnt.size();s++){
+                info_lib.get_student_info(stdnt[s].get_roll());
+                cout<<"\n";
+            }
+            cout<<"Press any key to exit from this method...\n";
+            getch();
+        }else if(command=="-semister_information"){
+           system("cls");
+            cout<<"type -break to exit from this method...\n";
+            while(true){
+                cout<<"Insert semister number :";
+                cin>>number_of_semister;
+                if(number_of_semister=="-break"){
+                    break;
+                }
+                else{
+                    int n_s;
+                    istringstream(number_of_semister)>>n_s;
+                    cout<<"\nInformations: \n..............\n";
+                    smstr[n_s-1].get_semister_info();
+                    cout<<"\n\n";
+                }
+            }
+        }else if(command=="-all_semister_information"){
+            system("cls");
+            cout<<"All Semister Information:\n.......................... \n\n";
+            for(int s=0;s<smstr.size();s++){
+                cout<<"Semister no: "<<s+1<<"\n";
+                smstr[s].get_semister_info();
+                cout<<"\n";
+            }
+            cout<<"Press any key to exit from this method...\n";
+            getch();
+        }
     }
+
+
 
     return 0;
 }
