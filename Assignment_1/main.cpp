@@ -112,9 +112,9 @@ private:
     }
 public:
     void set_student_info(Semister& s,string name,string roll,float grade[]){
-        this->semister.push_back(s);
         this->name = name;
         this->roll = roll;
+        this->semister.push_back(s);
         for(i=0;i<semister.back().number_of_subjects();i++){
             semister.back().set_grade(i,grade[i]);
         }
@@ -131,6 +131,23 @@ public:
             total_sgpa += grand_total/passed_credit;
         }
         CGPA = total_sgpa/semister.size();
+    }
+    void add_new_semister(Semister& s,float grade[]){
+        this->semister.push_back(s);
+        float passed_credit=0;
+        float grand_total=0;
+        float sgpa=0;
+        for(i=0;i<s.number_of_subjects();i++){
+            semister.back().set_grade(i,grade[i]);
+        }
+        for(i=0;i<semister.back().number_of_subjects();i++){
+            if(semister.back().get_grade(i)!=0){
+                grand_total += (semister.back().get_grade(i)*semister.back().get_credit(i));
+                passed_credit += semister.back().get_credit(i);
+            }
+        }
+        sgpa = grand_total/passed_credit;
+        CGPA = ((CGPA*(semister.size()-1))+ sgpa)/semister.size();
     }
     string get_roll(){
         return roll;
@@ -162,11 +179,13 @@ public:
     void Activate_Informations_library(vector<Students>& students){
         //must be reset when new semister or student will be added
         this->students = students;
-        for(i=0;i<students.size();i++){
+        cgpa.clear();
+        for(int i=0;i<students.size();i++){
             id_from_roll.insert(pair<string,int>(students[i].get_roll(),i));
             cgpa.insert(students[i].get_cgpa());
         }
     }
+    //Merit Calculation
     float get_merit(string roll){
         int merit = cgpa.size() - distance(cgpa.begin(),cgpa.find(students[id_from_roll[roll]].get_cgpa()));
         return merit;
@@ -187,11 +206,6 @@ public:
 
 //Utility Functions.............................
 
-//initialize subjects to semister
-void add_semister(vector<Semister>& smstr){
-    Semister temp_semister;
-    smstr.push_back(temp_semister);
-}
 //Add students
 void add_students(vector<Students>& stdnt){
     Students temp_student;
@@ -222,7 +236,17 @@ void set_informations_to_subjects(vector<Semister>& smstr,int n_smstr){
         smstr[n_smstr].set_subject_info(j,course_title,course_teacher,course_code,credit);
         cout<<"\n............................................\n";
     }
-
+}
+//initialize subjects to semister
+void add_semister(vector<Semister>& smstr,int number_of_semister){
+    int number_of_subjects;
+    Semister temp_semister;
+    smstr.push_back(temp_semister);
+    cout<<"Number of Courses :";
+    cin>>number_of_subjects;
+    add_subject_to_semister(smstr,number_of_semister,number_of_subjects);
+    set_informations_to_subjects(smstr,number_of_semister);
+    cout<<"\n\n";
 }
 
 
@@ -248,19 +272,14 @@ int main(){
     vector <Semister> smstr;
     system("cls");
 
-    //set semister information
+    //add and set semister information
     for(i=0;i<number_of_semisters;i++){
-        add_semister(smstr);
         cout<<"Insert the informations of semister "<<i+1<<": \n\n";
-        cout<<"Number of Courses :";
-        cin>>number_of_subjects;
-        add_subject_to_semister(smstr,i,number_of_subjects);
-        set_informations_to_subjects(smstr,i);
-        cout<<"\n\n";
+        add_semister(smstr,i);
     }
     system("cls");
 
-    //initial semister
+    //initialize students
     cout<<"Insert the number of students: ";
     cin>>number_of_students;
     cout<<"\n\n";
@@ -301,12 +320,10 @@ int main(){
     string command="-start";
     cout<<"These are some available methods... type method name to use\n\n";
     cout<<"\t\t\t -merit \t -students_information \t -all_students_information \n\t\t -semister_information \t -all_semisters_information \t -add_student \t -add_semister\n\t\t\t\t\t\t\t -exit \n\n";
-    cout<<"\n*** -add_student and -add_semister methods are in under construction...\n\n";
     while(command!="-exit"){
         system("cls");
         cout<<"These are some available methods... type method name to use\n\n";
         cout<<"\t\t\t -merit \t -students_information \t -all_students_information \n\t\t -semister_information \t -all_semisters_information \t -add_student \t -add_semister\n\t\t\t\t\t\t\t -exit \n\n";
-        cout<<"\n*** -add_student and -add_semister methods are in under construction...\n\n";
         cout<<"\nMethod name: ";
         cin>>command;
         if(command=="-merit"){
@@ -360,7 +377,7 @@ int main(){
                     cout<<"\n\n";
                 }
             }
-        }else if(command=="-all_semister_information"){
+        }else if(command=="-all_semisters_information"){
             system("cls");
             cout<<"All Semister Information:\n.......................... \n\n";
             for(int s=0;s<smstr.size();s++){
@@ -368,6 +385,43 @@ int main(){
                 smstr[s].get_semister_info();
                 cout<<"\n";
             }
+            cout<<"Press any key to exit from this method...\n";
+            getch();
+        }else if(command=="-add_student"){
+            system("cls");
+            add_students(stdnt);
+            cout<<"Insert New Students Information:\n.......................... \n\n";
+            cout<<"Insert Name:";
+            cin>>name;
+            cout<<"Insert Roll:";
+            cin>>roll;
+            for(int semister_number=0;semister_number<smstr.size();semister_number++){
+                cout<<semister_number+1<<"th semister: \n";
+                for(int subject_number=0;subject_number<smstr[semister_number].number_of_subjects();subject_number++){
+                    cout<<"\tInsert Grade in "<<smstr[semister_number].get_course_title(subject_number)<<": ";
+                    cin>>grd[subject_number];
+                }
+                stdnt.back().set_student_info(smstr[semister_number],name,roll,grd);
+            }
+            cout<<"\n\nStudents information is added successfully.\n\n";
+            info_lib.Activate_Informations_library(stdnt);
+            cout<<"Press any key to exit from this method...\n";
+            getch();
+        }else if(command=="-add_semister"){
+            system("cls");
+            cout<<"Insert New Semister Information:\n.......................... \n\n";
+            int semister_number = smstr.size();
+            add_semister(smstr,semister_number);
+            for(int i=0;i<stdnt.size();i++){
+                cout<<"Roll no: "<<stdnt[i].get_roll()<<"\n";
+                for(int subject_number=0;subject_number<smstr.back().number_of_subjects();subject_number++){
+                    cout<<"\tInsert Grade in "<<smstr[semister_number].get_course_title(subject_number)<<": ";
+                    cin>>grd[subject_number];
+                }
+                stdnt[i].add_new_semister(smstr.back(),grd);
+            }
+            cout<<"\n\nStudents information is added successfully.\n\n";
+            info_lib.Activate_Informations_library(stdnt);
             cout<<"Press any key to exit from this method...\n";
             getch();
         }
